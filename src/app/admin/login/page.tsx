@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="hidden bg-[#171714] p-12 text-[#f1ede4] lg:flex lg:flex-col lg:justify-between">
-        <p className="font-black tracking-[-0.03em]">MIKE / ARCHIVE</p>
+        <p className="font-black tracking-[-0.03em]">Mike&apos;s store</p>
         <p className="font-editorial max-w-lg text-7xl leading-[0.9]">The quiet side of the shop.</p>
         <p className="text-xs uppercase tracking-[0.14em] text-white/50">Private seller workspace</p>
       </div>

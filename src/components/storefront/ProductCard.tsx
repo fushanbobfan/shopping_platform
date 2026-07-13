@@ -13,6 +13,7 @@ export type ProductCardData = {
   category: string | null;
   condition: string | null;
   image: string | null;
+  searchText: string;
 };
 
 export function ProductCard({

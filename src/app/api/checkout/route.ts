@@ -178,11 +178,7 @@ export async function POST(request: Request) {
               display_name:
                 siteConfig.shippingCents === 0
                   ? "Complimentary shipping"
-                  : "Standard shipping",
-              delivery_estimate: {
-                minimum: { unit: "business_day", value: 2 },
-                maximum: { unit: "business_day", value: 5 }
-              }
+                  : "Standard shipping"
             }
           }
         ],

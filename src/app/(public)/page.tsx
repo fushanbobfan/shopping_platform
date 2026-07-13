@@ -30,7 +30,20 @@ export default async function HomePage() {
     size: product.size,
     category: product.category,
     condition: product.condition,
-    image: product.images[0]?.url ?? null
+    image: product.images[0]?.url ?? null,
+    searchText: [
+      product.name,
+      product.brand,
+      product.category,
+      product.size,
+      product.condition,
+      product.color,
+      product.material,
+      product.description,
+      product.story
+    ]
+      .filter(Boolean)
+      .join(" ")
   }));
 
   return (

@@ -6,7 +6,7 @@ export const stripe = new Stripe(
 );
 
 export function allowedShippingCountries(): Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] {
-  const raw = process.env.STRIPE_ALLOWED_COUNTRIES ?? "US,CA";
+  const raw = process.env.STRIPE_ALLOWED_COUNTRIES ?? "US";
   return raw
     .split(",")
     .map((country) => country.trim().toUpperCase())

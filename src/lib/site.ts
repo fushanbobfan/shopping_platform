@@ -5,8 +5,8 @@ const configuredShippingCents = Number.parseInt(
 );
 
 export const siteConfig = {
-  name: configuredName || "MIKE / ARCHIVE",
-  shortName: "M/A",
+  name: configuredName || "Mike's store",
+  shortName: "MS",
   owner: process.env.NEXT_PUBLIC_SHOP_OWNER?.trim() || "Mike",
   location:
     process.env.NEXT_PUBLIC_SHOP_LOCATION?.trim() || "Los Angeles, CA",
@@ -18,7 +18,9 @@ export const siteConfig = {
       : 0,
   description:
     "A rotating edit of well-worn favorites from Mike's personal wardrobe.",
-  shippingNote: "Packed personally and shipped in 2–3 business days."
+  shippingNote:
+    process.env.NEXT_PUBLIC_SHIPPING_NOTE?.trim() ||
+    "Ships within the United States."
 } as const;
 
 export function absoluteUrl(path = "") {

@@ -1,4 +1,4 @@
-# MIKE / ARCHIVE
+# Mike's store
 
 Mike 的单卖家个人衣橱商店。它把每件衣服当作一件独立藏品来展示，同时提供可靠的库存锁定、Stripe 支付、订单履约和轻量后台。
 
@@ -9,7 +9,7 @@ Mike 的单卖家个人衣橱商店。它把每件衣服当作一件独立藏品
 
 ## 这次重做包含什么
 
-- 编辑型 storefront：首页主视觉、可筛选 collection、藏品详情、响应式购物袋和结账复核。
+- 编辑型 storefront：首页主视觉、分类与多关键词搜索、藏品详情、响应式购物袋和结账复核。
 - 单件库存保护：打开 Stripe Checkout 时原子锁定商品 32 分钟；Stripe session 在 30 分钟过期。
 - 幂等支付履约：webhook 与成功页都可安全完成订单，并防止重复售卖或重复处理事件。
 - 实用后台：商品上架/隐藏/编辑、图片上传、订单查看、物流单号、未付款订单释放。
@@ -58,7 +58,7 @@ npm run dev
 | `SESSION_SECRET` | 是 | 至少 32 字符的随机会话密钥 |
 | `STRIPE_SECRET_KEY` | 是 | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | 是 | webhook endpoint 的 `whsec_...` |
-| `STRIPE_ALLOWED_COUNTRIES` | 否 | 逗号分隔，默认 `US,CA` |
+| `STRIPE_ALLOWED_COUNTRIES` | 否 | 逗号分隔，默认只允许 `US` |
 | `BLOB_READ_WRITE_TOKEN` | 部署时 | Vercel Blob token；已连接的 Vercel 项目也可使用 OIDC |
 | `APP_URL` | 是 | 完整站点地址，用于可信 Stripe redirect |
 | `NEXT_PUBLIC_SHIPPING_CENTS` | 否 | 固定运费，按最小货币单位；`800` 为 $8，`0` 为免邮 |
