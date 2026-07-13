@@ -127,6 +127,10 @@ async function main() {
     await prisma.product.create({
       data: {
         ...product,
+        name: `Demo — ${product.name}`,
+        description: `Staging placeholder — not an item currently offered for sale. ${product.description}`,
+        story:
+          "Demo catalog copy for testing the storefront. Replace this record with Mike's verified item details before launch.",
         currency: process.env.NEXT_PUBLIC_CURRENCY ?? "usd",
         measurements: product.measurements,
         images: {
