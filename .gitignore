@@ -8,3 +8,8 @@ node_modules
 prisma/dev.db
 prisma/dev.db-journal
 .vercel
+.qa
+.playwright-cli
+output/playwright
+tsconfig.tsbuildinfo
+coverage

@@ -1,38 +1,50 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/db";
 import { isAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { rejectCrossOrigin } from "@/lib/http";
+import { productInputSchema } from "@/lib/product-data";
 
-const schema = z.object({
-  name: z.string().min(1).max(200),
-  description: z.string().min(1).max(5000),
-  priceCents: z.number().int().nonnegative(),
-  size: z.string().max(40).nullable().optional(),
-  category: z.string().max(40).nullable().optional(),
-  condition: z.string().max(40).nullable().optional(),
-  images: z.array(z.string().url()).min(1)
-});
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
+  const crossOrigin = rejectCrossOrigin(request);
+  if (crossOrigin) return crossOrigin;
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const body = await req.json().catch(() => null);
-  const parsed = schema.safeParse(body);
+
+  const parsed = productInputSchema.safeParse(
+    await request.json().catch(() => null)
+  );
   if (!parsed.success) {
-    return NextResponse.json({ error: "invalid" }, { status: 400 });
+    return NextResponse.json(
+      { error: "invalid", fields: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
   }
-  const { images, ...rest } = parsed.data;
+
+  const { images, measurements, status, ...data } = parsed.data;
+  const duplicate = await prisma.product.findUnique({
+    where: { slug: data.slug },
+    select: { id: true }
+  });
+  if (duplicate) {
+    return NextResponse.json({ error: "slug-exists" }, { status: 409 });
+  }
 
   const product = await prisma.product.create({
     data: {
-      ...rest,
+      ...data,
+      measurements: measurements ?? undefined,
       currency: process.env.NEXT_PUBLIC_CURRENCY ?? "usd",
+      status: status === "AVAILABLE" ? "AVAILABLE" : "HIDDEN",
       images: {
-        create: images.map((url, i) => ({ url, order: i }))
+        create: images.map((url, order) => ({
+          url,
+          alt: data.name,
+          order
+        }))
       }
     }
   });
 
-  return NextResponse.json({ id: product.id });
+  return NextResponse.json({ id: product.id, slug: product.slug });
 }

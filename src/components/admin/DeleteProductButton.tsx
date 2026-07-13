@@ -1,20 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { t } from "@/lib/i18n";
+import { useState } from "react";
 
-export function DeleteProductButton({ id }: { id: string }) {
+export function DeleteProductButton({ id, disabled = false }: { id: string; disabled?: boolean }) {
   const router = useRouter();
+  const [busy, setBusy] = useState(false);
 
-  async function del() {
-    if (!confirm(t.admin.products.confirmDelete)) return;
-    const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
-    if (res.ok) router.refresh();
+  async function archive() {
+    if (disabled || !window.confirm("Move this piece to drafts? It will disappear from the store.")) return;
+    setBusy(true);
+    const response = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+    if (response.ok) router.refresh();
+    setBusy(false);
   }
 
-  return (
-    <button onClick={del} className="text-red-600 hover:underline">
-      {t.admin.products.delete}
-    </button>
-  );
+  return <button type="button" onClick={archive} disabled={busy || disabled} title={disabled ? "A reserved piece cannot be archived" : undefined} className="text-[#a83220] hover:text-[#6f2115] disabled:cursor-not-allowed disabled:opacity-35">{busy ? "Archiving…" : "Archive"}</button>;
 }

@@ -1,109 +1,72 @@
+import { FulfillmentForm } from "@/components/admin/FulfillmentForm";
+import { CancelReservationButton } from "@/components/admin/CancelReservationButton";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { formatMoney } from "@/lib/money";
-import { t } from "@/lib/i18n";
-import { MarkShippedButton } from "@/components/admin/MarkShippedButton";
 
 export const dynamic = "force-dynamic";
 
-const statusLabels: Record<string, string> = {
-  PENDING: t.admin.orders.pending,
-  PAID: t.admin.orders.paid,
-  SHIPPED: t.admin.orders.shipped,
-  CANCELLED: t.admin.orders.cancelled
-};
+const statusLabels = {
+  PENDING: "Checkout open",
+  PAID: "To ship",
+  SHIPPED: "Shipped",
+  CANCELLED: "Cancelled",
+  EXPIRED: "Expired",
+  REFUNDED: "Refunded"
+} as const;
 
-export default async function AdminOrders() {
+const statusStyles = {
+  PENDING: "bg-[#eee9df] text-[#6e685f]",
+  PAID: "bg-[#f2d79a] text-[#684913]",
+  SHIPPED: "bg-[#cfe1d5] text-[#244a34]",
+  CANCELLED: "bg-[#ddd9d1] text-[#5b5750]",
+  EXPIRED: "bg-[#ddd9d1] text-[#5b5750]",
+  REFUNDED: "bg-[#e7cfc8] text-[#743426]"
+} as const;
+
+export default async function AdminOrdersPage() {
   await requireAdmin();
   const orders = await prisma.order.findMany({
-    include: { items: { include: { product: true } } },
+    include: { items: true },
     orderBy: { createdAt: "desc" }
   });
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t.admin.orders.title}</h1>
-      <div className="space-y-3">
-        {orders.map((o) => (
-          <div key={o.id} className="bg-white rounded-xl p-4 space-y-3">
-            <div className="flex items-start justify-between flex-wrap gap-2">
+    <div>
+      <div className="border-b border-black/15 pb-6">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-black/45">Fulfillment</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-[-0.035em]">Orders</h1>
+        <p className="mt-2 text-sm text-black/50">Payment, buyer address, and shipment details in one place.</p>
+      </div>
+
+      <div className="mt-8 space-y-4">
+        {orders.map((order) => (
+          <article key={order.id} className="border border-black/15 bg-white/45 p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-sm text-neutral-500">
-                  订单 <span className="font-mono">{o.id}</span>
-                </div>
-                <div className="text-xs text-neutral-500 mt-0.5">
-                  {new Date(o.createdAt).toLocaleString("zh-CN")}
-                </div>
+                <div className="flex flex-wrap items-center gap-3"><h2 className="font-mono text-sm font-bold">{order.publicId}</h2><span className={`px-2 py-1 text-[0.65rem] font-bold uppercase tracking-[0.08em] ${statusStyles[order.status]}`}>{statusLabels[order.status]}</span></div>
+                <p className="mt-2 text-xs text-black/45">Created {order.createdAt.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={
-                    "text-xs px-2 py-1 rounded-full " +
-                    (o.status === "PAID"
-                      ? "bg-amber-100 text-amber-800"
-                      : o.status === "SHIPPED"
-                        ? "bg-green-100 text-green-800"
-                        : o.status === "CANCELLED"
-                          ? "bg-neutral-200 text-neutral-700"
-                          : "bg-neutral-100 text-neutral-600")
-                  }
-                >
-                  {statusLabels[o.status]}
-                </span>
-                {o.status === "PAID" && <MarkShippedButton id={o.id} />}
-              </div>
+              <p className="text-xl font-bold">{formatMoney(order.totalCents, order.currency)}</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <div className="text-neutral-500 mb-1">买家</div>
-                <div>{o.buyerName ?? "—"}</div>
-                <div className="text-neutral-600">{o.buyerEmail ?? "—"}</div>
-              </div>
-              <div>
-                <div className="text-neutral-500 mb-1">收货地址</div>
-                <div className="text-neutral-700 leading-relaxed">
-                  {[
-                    o.shippingLine1,
-                    o.shippingLine2,
-                    o.shippingCity,
-                    o.shippingState,
-                    o.shippingPostal,
-                    o.shippingCountry
-                  ]
-                    .filter(Boolean)
-                    .join(" / ") || "—"}
-                </div>
-              </div>
+            <div className="mt-6 grid gap-6 border-t border-black/10 pt-5 md:grid-cols-[0.8fr_1.2fr]">
+              <div><p className="text-xs font-bold uppercase tracking-[0.1em] text-black/45">Buyer</p><p className="mt-2 text-sm font-semibold">{order.buyerName || "—"}</p><p className="mt-1 text-sm text-black/55">{order.buyerEmail || "—"}</p></div>
+              <div><p className="text-xs font-bold uppercase tracking-[0.1em] text-black/45">Ship to</p><address className="mt-2 text-sm not-italic leading-6 text-black/65">{[order.shippingLine1, order.shippingLine2, [order.shippingCity, order.shippingState, order.shippingPostal].filter(Boolean).join(", "), order.shippingCountry].filter(Boolean).map((line) => <span key={line} className="block">{line}</span>)}</address></div>
             </div>
 
-            <ul className="border-t border-brand-200 pt-3 text-sm divide-y divide-brand-100">
-              {o.items.map((it) => (
-                <li
-                  key={it.id}
-                  className="flex justify-between py-1.5"
-                >
-                  <span className="truncate pr-2">{it.product.name}</span>
-                  <span className="text-brand-700 font-medium">
-                    {formatMoney(it.priceAtPurchase, o.currency)}
-                  </span>
-                </li>
+            <ul className="mt-5 border-t border-black/10 pt-3 text-sm">
+              {order.items.map((item) => (
+                <li key={item.id} className="flex justify-between gap-6 py-1.5"><span>{item.nameAtPurchase}</span><span className="shrink-0 font-semibold">{formatMoney(item.priceAtPurchase, order.currency)}</span></li>
               ))}
             </ul>
 
-            <div className="flex justify-end text-base">
-              <span className="text-neutral-500 mr-2">合计</span>
-              <span className="font-bold text-brand-700">
-                {formatMoney(o.totalCents, o.currency)}
-              </span>
-            </div>
-          </div>
+            {order.status === "PAID" ? <FulfillmentForm orderId={order.id} /> : null}
+            {order.status === "PENDING" ? <CancelReservationButton orderId={order.id} /> : null}
+            {order.status === "SHIPPED" && (order.carrier || order.trackingNumber) ? <p className="mt-4 border-t border-black/10 pt-4 text-xs text-black/55">{order.carrier || "Carrier not set"}{order.trackingNumber ? <> · <span className="font-mono">{order.trackingNumber}</span></> : null}</p> : null}
+          </article>
         ))}
-        {orders.length === 0 && (
-          <div className="p-12 text-center text-neutral-500 bg-white rounded-xl">
-            暂无订单
-          </div>
-        )}
+        {orders.length === 0 ? <p className="border-b border-black/15 py-20 text-center text-sm text-black/45">No orders yet.</p> : null}
       </div>
     </div>
   );

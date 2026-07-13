@@ -1,49 +1,67 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { formatMoney } from "@/lib/money";
 
-type Props = {
-  product: {
-    id: string;
-    name: string;
-    priceCents: number;
-    currency: string;
-    size: string | null;
-    images: { url: string }[];
-  };
+export type ProductCardData = {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string | null;
+  priceCents: number;
+  currency: string;
+  size: string | null;
+  category: string | null;
+  condition: string | null;
+  image: string | null;
+  searchText: string;
 };
 
-export function ProductCard({ product }: Props) {
-  const image = product.images[0]?.url;
+export function ProductCard({
+  product,
+  priority = false
+}: {
+  product: ProductCardData;
+  priority?: boolean;
+}) {
   return (
-    <Link
-      href={`/products/${product.id}`}
-      className="group block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-    >
-      <div className="relative aspect-[4/5] bg-brand-100">
-        {image ? (
+    <Link href={`/pieces/${product.slug}`} className="group block focus-visible:outline-offset-4">
+      <div className="product-media relative aspect-[4/5] overflow-hidden bg-[var(--paper-deep)]">
+        {product.image ? (
           <Image
-            src={image}
+            src={product.image}
             alt={product.name}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="object-cover group-hover:scale-[1.02] transition-transform"
+            priority={priority}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-400">
-            无图
+          <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+            Photograph coming soon
           </div>
         )}
+        <span className="absolute left-3 top-3 bg-[var(--paper)] px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.13em]">
+          One of one
+        </span>
       </div>
-      <div className="p-3 space-y-1">
-        <div className="text-sm truncate">{product.name}</div>
-        <div className="flex items-baseline justify-between">
-          <span className="text-brand-700 font-semibold">
+      <div className="border-b hairline py-3.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-[0.68rem] font-bold uppercase tracking-[0.13em] text-[var(--muted)]">
+              {product.brand || product.category || "From the archive"}
+            </p>
+            <h3 className="mt-1 truncate text-sm font-semibold sm:text-base">
+              {product.name}
+            </h3>
+          </div>
+          <p className="shrink-0 text-sm font-semibold">
             {formatMoney(product.priceCents, product.currency)}
-          </span>
-          {product.size && (
-            <span className="text-xs text-neutral-500">{product.size}</span>
-          )}
+          </p>
+        </div>
+        <div className="mt-2 flex gap-2 text-xs text-[var(--muted)]">
+          {product.size ? <span>{product.size}</span> : null}
+          {product.size && product.condition ? <span>·</span> : null}
+          {product.condition ? <span>{product.condition}</span> : null}
         </div>
       </div>
     </Link>
