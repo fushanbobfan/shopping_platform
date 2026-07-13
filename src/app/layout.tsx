@@ -1,19 +1,36 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { t } from "@/lib/i18n";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `${t.brand} · ${t.tagline}`,
-  description: t.tagline
+  metadataBase: new URL(absoluteUrl()),
+  title: {
+    default: `${siteConfig.name} — Personal wardrobe sale`,
+    template: `%s — ${siteConfig.name}`
+  },
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  openGraph: {
+    type: "website",
+    siteName: siteConfig.name,
+    title: siteConfig.name,
+    description: siteConfig.description
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description
+  }
 };
 
-export default function RootLayout({
-  children
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#f1ede4"
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>{children}</body>
     </html>
   );

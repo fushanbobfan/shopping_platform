@@ -1,53 +1,50 @@
 "use client";
 
+import { ArrowRight, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCart } from "@/lib/cart-store";
-import { t } from "@/lib/i18n";
-import { useEffect, useState } from "react";
+import { useCart, type CartItem } from "@/lib/cart-store";
 
-type Props = {
-  product: { id: string; name: string; priceCents: number; image?: string };
-  soldOut: boolean;
-};
-
-export function AddToCartButton({ product, soldOut }: Props) {
+export function AddToCartButton({
+  product,
+  unavailable
+}: {
+  product: CartItem;
+  unavailable: boolean;
+}) {
   const router = useRouter();
-  const add = useCart((s) => s.add);
-  const has = useCart((s) => s.has);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const add = useCart((state) => state.add);
+  const alreadyInBag = useCart((state) => state.has(product.productId));
 
-  if (soldOut) {
+  if (unavailable) {
     return (
-      <button
-        disabled
-        className="w-full py-3 rounded-lg bg-neutral-200 text-neutral-500 cursor-not-allowed"
-      >
-        {t.product.sold}
+      <button type="button" disabled className="button-primary w-full">
+        This piece is no longer available
       </button>
     );
   }
 
-  const already = mounted && has(product.id);
-
   return (
     <button
+      type="button"
+      className="button-primary w-full"
       onClick={() => {
-        if (already) {
-          router.push("/cart");
+        if (alreadyInBag) {
+          router.push("/bag");
           return;
         }
-        add({
-          productId: product.id,
-          name: product.name,
-          priceCents: product.priceCents,
-          image: product.image
-        });
-        router.push("/cart");
+        add(product);
+        router.push("/bag");
       }}
-      className="w-full py-3 rounded-lg bg-brand-600 text-white font-medium hover:bg-brand-700"
     >
-      {already ? t.product.inCart : t.product.addToCart}
+      {alreadyInBag ? (
+        <>
+          View in bag <ArrowRight size={16} />
+        </>
+      ) : (
+        <>
+          Add to bag <ShoppingBag size={16} />
+        </>
+      )}
     </button>
   );
 }

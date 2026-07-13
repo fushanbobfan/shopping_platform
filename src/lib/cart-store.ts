@@ -2,11 +2,15 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useSyncExternalStore } from "react";
 
 export type CartItem = {
   productId: string;
+  slug: string;
   name: string;
   priceCents: number;
+  currency: string;
+  size?: string;
   image?: string;
 };
 
@@ -22,15 +26,30 @@ export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      add: (item) => {
-        if (get().items.find((i) => i.productId === item.productId)) return;
-        set({ items: [...get().items, item] });
-      },
+      add: (item) =>
+        set((state) =>
+          state.items.some((existing) => existing.productId === item.productId)
+            ? state
+            : { items: [...state.items, item] }
+        ),
       remove: (productId) =>
-        set({ items: get().items.filter((i) => i.productId !== productId) }),
+        set((state) => ({
+          items: state.items.filter((item) => item.productId !== productId)
+        })),
       clear: () => set({ items: [] }),
-      has: (productId) => !!get().items.find((i) => i.productId === productId)
+      has: (productId) =>
+        get().items.some((item) => item.productId === productId)
     }),
-    { name: "shop-cart" }
+    {
+      name: "mike-archive-bag",
+      version: 2,
+      partialize: (state) => ({ items: state.items })
+    }
   )
 );
+
+const subscribeToNothing = () => () => undefined;
+
+export function useClientHydrated() {
+  return useSyncExternalStore(subscribeToNothing, () => true, () => false);
+}

@@ -3,10 +3,10 @@
 import { useEffect } from "react";
 import { useCart } from "@/lib/cart-store";
 
-export function ClearCartOnMount() {
+export function ClearCartOnMount({ enabled = true }: { enabled?: boolean }) {
   const clear = useCart((s) => s.clear);
   useEffect(() => {
-    clear();
-  }, [clear]);
+    if (enabled) clear();
+  }, [clear, enabled]);
   return null;
 }
